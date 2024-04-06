@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  app:
+    build: ./api
+    environment:
+      DBUSER: utnuser
+      DBPASS: password
+      DBNAME: utnproject
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: utnuser
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: utnproject
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  db-data:
