@@ -9,6 +9,7 @@ import (
 )
 
 type Date struct {
+	ID   int    `json:"id"`
 	Date string `json:"date"`
 }
 
@@ -40,7 +41,7 @@ func saveDate(w http.ResponseWriter, r *http.Request) {
 
 	defer postgres.db.Close()
 
-	query := `INSERT INTO dates (date) VALUES ($1)`
+	query := `INSERT INTO dates (date) VALUES ($1);`
 
 	date := time.Now().Format("2006-01-02 15:04:05")
 
@@ -51,6 +52,9 @@ func saveDate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	msg := fmt.Sprintf("Fecha %v guardada", date)
+
+	w.Write([]byte(msg))
 }
 
 func getDates(w http.ResponseWriter, r *http.Request) {
@@ -68,23 +72,26 @@ func getDates(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := postgres.db.Query("SELECT * FROM dates")
+	query := `SELECT * FROM dates;`
+
+	rows, err := postgres.db.Query(query)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	defer rows.Close()
 
 	var dates []Date
 	for rows.Next() {
-		var date time.Time
-		err := rows.Scan(&date)
+		var date Date
+		err := rows.Scan(&date.ID, &date.Date)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		dates = append(dates, Date{Date: date.Format("2006-01-02 15:04:05")})
+		dates = append(dates, date)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

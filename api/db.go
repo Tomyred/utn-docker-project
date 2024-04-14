@@ -18,7 +18,7 @@ func NewDB() (*database, error) {
 		dbuser  = os.Getenv("DBUSER")
 		dbname  = os.Getenv("DBNAME")
 		dbpass  = os.Getenv("DBPASS")
-		connStr = fmt.Sprintf("user=%v dbname=%v password=%v sslmode=disabled", dbuser, dbname, dbpass)
+		connStr = fmt.Sprintf("user=%v dbname=%v password=%v port=5432 host=db sslmode=disable", dbuser, dbname, dbpass)
 	)
 	fmt.Printf("connStr %v \n", connStr)
 

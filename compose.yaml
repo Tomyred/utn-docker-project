@@ -1,8 +1,9 @@
-version: '3'
+version: '3.7'
 
 services:
   app:
-    build: ./api
+    container_name: backend_container
+    build: api
     environment:
       DBUSER: utnuser
       DBPASS: password
@@ -10,19 +11,37 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    networks:
+      - utn
 
   db:
+    container_name: postgresdb_container
     image: postgres:16
+    restart: always
     environment:
-      POSTGRES_USER: utnuser
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: utnproject
+      - POSTGRES_USER=utnuser
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=utnproject
     ports:
       - "5432:5432"
+    expose:
+      - 5432
     volumes:
       - db-data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d utnproject -U utnuser" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - utn
+
+networks:
+  utn:
+    driver: bridge
 
 volumes:
   db-data:
